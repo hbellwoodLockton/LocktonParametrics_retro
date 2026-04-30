@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<style>body{background-color:white;}</style>
+
+
+</head>
+<body>
+<title>Magnitude — retro dashboard</title>
+<style>body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; color: #222; background: #fafafa; }
+header.page-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 16px 10px 24px; background: #1E466E; }
+header.page-header h1 { padding: 0; margin: 0; background: transparent; color: #fff; font-size: 18px; }
+header.page-header .brand { display: flex; align-items: center; gap: 12px; }
+header.page-header .brand-attribution { font-family: "Courier New", Courier, monospace; font-style: italic; font-size: 11px; line-height: 1.35; color: #fff; text-decoration: none; text-align: right; }
+header.page-header .brand-attribution:hover { text-decoration: underline; }
+header.page-header .brand-attribution span { display: block; }
+header.page-header .brand-logo { height: 36px; width: auto; background: #fff; padding: 4px 10px; border-radius: 4px; box-sizing: content-box; }
+h2 { margin: 0 0 12px; font-size: 22px; }
+h3 { margin: 24px 0 8px; font-size: 15px; color: #376795; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+h4 { margin: 16px 0 6px; font-size: 14px; color: #444; }
+input.tab-radio { display: none; }
+nav.tabs { display: flex; flex-wrap: wrap; gap: 2px; padding: 0 24px; background: #eee; border-bottom: 1px solid #ccc; }
+nav.tabs label { padding: 10px 16px; cursor: pointer; user-select: none; font-size: 13px; background: #f5f5f5; border: 1px solid #ddd; border-bottom: none; border-radius: 4px 4px 0 0; }
+nav.tabs label:hover { background: #fff; }
+.tab-content { display: none; padding: 24px; }
+#tab-overview:checked ~ #content-overview { display: block; }
+#tab-Los_Angeles:checked ~ #content-Los_Angeles { display: block; }
+#tab-San_Diego:checked ~ #content-San_Diego { display: block; }
+#tab-San_Francisco:checked ~ #content-San_Francisco { display: block; }
+#tab-overview:checked ~ nav.tabs label[for="tab-overview"] { background: #1E466E; color: #fff; }
+#tab-Los_Angeles:checked ~ nav.tabs label[for="tab-Los_Angeles"] { background: #1E466E; color: #fff; }
+#tab-San_Diego:checked ~ nav.tabs label[for="tab-San_Diego"] { background: #1E466E; color: #fff; }
+#tab-San_Francisco:checked ~ nav.tabs label[for="tab-San_Francisco"] { background: #1E466E; color: #fff; }
+table.data-table { border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+table.data-table th, table.data-table td { border: 1px solid #ddd; padding: 6px 10px; text-align: right; }
+table.data-table th { background: #f0f4f8; color: #1E466E; font-weight: 600; }
+table.data-table td:first-child, table.data-table th:first-child { text-align: left; }
+iframe.map-frame { width: 100%; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
+iframe.event-frame { height: 700px; margin-bottom: 12px; }
+.empty-note { color: #888; font-style: italic; font-size: 13px; }</style>
+<header class="page-header">
+  <h1>Magnitude — retro EQ pricing dashboard</h1>
+  <div class="brand">
+    <a href="https://global.lockton.com/gb/en/products-services/parametric-insurance" class="brand-attribution" target="_blank" rel="noopener noreferrer">
+      <span>Lockton Parametrics UK</span>
+      <span>Paul Jones &amp; Henry Bellwood 2026</span>
+    </a>
+    <img src="data:image/png;base64,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" class="brand-logo" alt="Lockton"/>
+  </div>
+</header>
+<input type="radio" name="tabs" id="tab-overview" class="tab-radio" checked/>
+<input type="radio" name="tabs" id="tab-Los_Angeles" class="tab-radio"/>
+<input type="radio" name="tabs" id="tab-San_Diego" class="tab-radio"/>
+<input type="radio" name="tabs" id="tab-San_Francisco" class="tab-radio"/>
+<nav class="tabs">
+  <label for="tab-overview">Overview</label>
+  <label for="tab-Los_Angeles">Los Angeles</label>
+  <label for="tab-San_Diego">San Diego</label>
+  <label for="tab-San_Francisco">San Francisco</label>
+</nav>
+<section id="content-overview" class="tab-content">
+  <h2>Overview</h2>
+  <h3>Pricing — all trigger boundaries</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Trigger boundary</th>
+        <th>Strike Magnitude</th>
+        <th>Exit Magnitude</th>
+        <th>EL</th>
+        <th>ROL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>California</td>
+        <td>7.6</td>
+        <td>8.3</td>
+        <td>1.00%</td>
+        <td>3.12%</td>
+      </tr>
+      <tr>
+        <td>California</td>
+        <td>7.9</td>
+        <td>8.1</td>
+        <td>0.50%</td>
+        <td>3.12%</td>
+      </tr>
+      <tr>
+        <td>Los Angeles 120km</td>
+        <td>6.9</td>
+        <td>7.9</td>
+        <td>0.50%</td>
+        <td>1.56%</td>
+      </tr>
+      <tr>
+        <td>Los Angeles 120km</td>
+        <td>6.5</td>
+        <td>7.6</td>
+        <td>1.00%</td>
+        <td>3.12%</td>
+      </tr>
+      <tr>
+        <td>San Diego 95km</td>
+        <td>6</td>
+        <td>7.1</td>
+        <td>0.50%</td>
+        <td>1.55%</td>
+      </tr>
+      <tr>
+        <td>San Diego 95km</td>
+        <td>6</td>
+        <td>6.5</td>
+        <td>0.73%</td>
+        <td>2.26%</td>
+      </tr>
+      <tr>
+        <td>San Francisco 85km</td>
+        <td>6.7</td>
+        <td>7.5</td>
+        <td>0.50%</td>
+        <td>1.56%</td>
+      </tr>
+      <tr>
+        <td>San Francisco 85km</td>
+        <td>6.7</td>
+        <td>6.9</td>
+        <td>1.00%</td>
+        <td>3.12%</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+<section id="content-Los_Angeles" class="tab-content">
+  <h2>Los Angeles</h2>
+  <h3>Pricing</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Trigger boundary</th>
+        <th>Strike Magnitude</th>
+        <th>Exit Magnitude</th>
+        <th>EL</th>
+        <th>ROL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Los Angeles 120km</td>
+        <td>6.9</td>
+        <td>7.9</td>
+        <td>0.50%</td>
+        <td>1.56%</td>
+      </tr>
+      <tr>
+        <td>Los Angeles 120km</td>
+        <td>6.5</td>
+        <td>7.6</td>
+        <td>1.00%</td>
+        <td>3.12%</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Stochastic Event maps (Verisk 10,000 year)</h3>
+  <h4>Target EL: 0.5%</h4>
+  <iframe src="Individual%20Files/RPALL_Los%20Angeles_0.5EL.html" class="map-frame event-frame" loading="lazy"></iframe>
+  <h4>Target EL: 1%</h4>
+  <iframe src="Individual%20Files/RPALL_Los%20Angeles_1EL.html" class="map-frame event-frame" loading="lazy"></iframe>
+</section>
+<section id="content-San_Diego" class="tab-content">
+  <h2>San Diego</h2>
+  <h3>Pricing</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Trigger boundary</th>
+        <th>Strike Magnitude</th>
+        <th>Exit Magnitude</th>
+        <th>EL</th>
+        <th>ROL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>San Diego 95km</td>
+        <td>6</td>
+        <td>7.1</td>
+        <td>0.50%</td>
+        <td>1.55%</td>
+      </tr>
+      <tr>
+        <td>San Diego 95km</td>
+        <td>6</td>
+        <td>6.5</td>
+        <td>0.73%</td>
+        <td>2.26%</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Stochastic Event maps (Verisk 10,000 year)</h3>
+  <h4>Target EL: 0.5%</h4>
+  <iframe src="Individual%20Files/RPALL_San%20Diego_0.5EL.html" class="map-frame event-frame" loading="lazy"></iframe>
+  <h4>Target EL: 1%</h4>
+  <iframe src="Individual%20Files/RPALL_San%20Diego_1EL.html" class="map-frame event-frame" loading="lazy"></iframe>
+</section>
+<section id="content-San_Francisco" class="tab-content">
+  <h2>San Francisco</h2>
+  <h3>Pricing</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Trigger boundary</th>
+        <th>Strike Magnitude</th>
+        <th>Exit Magnitude</th>
+        <th>EL</th>
+        <th>ROL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>San Francisco 85km</td>
+        <td>6.7</td>
+        <td>7.5</td>
+        <td>0.50%</td>
+        <td>1.56%</td>
+      </tr>
+      <tr>
+        <td>San Francisco 85km</td>
+        <td>6.7</td>
+        <td>6.9</td>
+        <td>1.00%</td>
+        <td>3.12%</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Stochastic Event maps (Verisk 10,000 year)</h3>
+  <h4>Target EL: 0.5%</h4>
+  <iframe src="Individual%20Files/RPALL_San%20Francisco_0.5.html" class="map-frame event-frame" loading="lazy"></iframe>
+  <h4>Target EL: 1%</h4>
+  <iframe src="Individual%20Files/RPALL_San%20Francisco_1.html" class="map-frame event-frame" loading="lazy"></iframe>
+</section>
+</body>
+</html>
