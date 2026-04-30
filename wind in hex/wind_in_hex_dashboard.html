@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<style>body{background-color:white;}</style>
+
+
+</head>
+<body>
+<title>Wind in Hex Dashboard</title>
+<style>body{font-family:-apple-system,Segoe UI,Roboto;margin:0;background:#fafafa}
+.tab-content{display:none;padding:24px}
+nav.tabs{display:flex;flex-wrap:wrap;background:#eee;padding:0 24px}
+nav.tabs label{padding:10px 16px;cursor:pointer;background:#f5f5f5;border:1px solid #ddd}
+input.tab-radio{display:none}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.metric{background:#fff;border:1px solid #ddd;padding:10px;border-radius:6px}
+.metric-value{font-weight:600;color:#1E466E}
+iframe{width:100%;height:100%;border:none}
+.map-frame{width:100%;border:1px solid #ccc;border-radius:4px;background:#fff;margin-bottom:12px}
+.overview-frame{height:600px}
+.event-frame{height:700px}
+#tab-overview:checked ~ #content-overview{display:block;}
+#tab-Charleston:checked ~ #content-Charleston{display:block;}
+#tab-Houston:checked ~ #content-Houston{display:block;}
+#tab-Jacksonville:checked ~ #content-Jacksonville{display:block;}
+#tab-Miami:checked ~ #content-Miami{display:block;}
+#tab-New_Orleans:checked ~ #content-New_Orleans{display:block;}
+#tab-New_York:checked ~ #content-New_York{display:block;}
+#tab-Tampa:checked ~ #content-Tampa{display:block;}
+#tab-Tri_County_Area:checked ~ #content-Tri_County_Area{display:block;}</style>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+function loadMap(el){
+
+ if(el.dataset.loaded) return;
+
+ const src = el.dataset.src;
+ if(!src) return;
+
+ const iframe=document.createElement('iframe');
+ iframe.src=src;
+ iframe.loading='lazy';
+
+ el.appendChild(iframe);
+ el.dataset.loaded='true';
+}
+
+function loadVisible(){
+
+ document.querySelectorAll('.tab-content')
+ .forEach(tab=>{
+   if(getComputedStyle(tab).display!=='none'){
+     tab.querySelectorAll('.lazy-map')
+        .forEach(loadMap);
+   }
+ });
+}
+
+loadVisible();
+
+document.querySelectorAll('input.tab-radio')
+.forEach(r=>r.addEventListener('change',loadVisible));
+
+});
+</script>
+<header style="background:#1E466E;color:white;padding:12px 24px">
+  <h1>Wind in Hex — retro WAL pricing dashboard</h1>
+  <div>
+    <img src="data:image/png;base64,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" style="height:36px;background:#fff;padding:4px"/>
+  </div>
+</header>
+<input type="radio" name="tabs" id="tab-overview" class="tab-radio" checked/>
+<input type="radio" name="tabs" id="tab-Charleston" class="tab-radio"/>
+<input type="radio" name="tabs" id="tab-Houston" class="tab-radio"/>
+<input type="radio" name="tabs" id="tab-Jacksonville" class="tab-radio"/>
+<input type="radio" name="tabs" id="tab-Miami" class="tab-radio"/>
+<input type="radio" name="tabs" id="tab-New_Orleans" class="tab-radio"/>
+<input type="radio" name="tabs" id="tab-New_York" class="tab-radio"/>
+<input type="radio" name="tabs" id="tab-Tampa" class="tab-radio"/>
+<input type="radio" name="tabs" id="tab-Tri_County_Area" class="tab-radio"/>
+<nav class="tabs">
+  <label for="tab-overview">Overview</label>
+  <label for="tab-Charleston">Charleston</label>
+  <label for="tab-Houston">Houston</label>
+  <label for="tab-Jacksonville">Jacksonville</label>
+  <label for="tab-Miami">Miami</label>
+  <label for="tab-New_Orleans">New Orleans</label>
+  <label for="tab-New_York">New York</label>
+  <label for="tab-Tampa">Tampa</label>
+  <label for="tab-Tri_County_Area">Tri County Area</label>
+</nav>
+<section id="content-overview" class="tab-content">
+  <h2>Overview</h2>
+  <h3>Hex limit % map</h3>
+  <div class="map-frame lazy-map overview-frame" data-src="Individual%20Files/hex_limit_pct_map.html"></div>
+  <h3>Pricing results — all cities</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>EL</th>
+        <th>ROL</th>
+        <th>ap</th>
+        <th>ep</th>
+        <th>RP50_GR</th>
+        <th>RP100_GR</th>
+        <th>RP200_GR</th>
+        <th>RP250_GR</th>
+        <th>RP500_GR</th>
+        <th>Hist burn (since 1950)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Charleston</td>
+        <td>1.50%</td>
+        <td>4.80%</td>
+        <td>8.10%</td>
+        <td>0.20%</td>
+        <td>16%</td>
+        <td>29%</td>
+        <td>51%</td>
+        <td>61%</td>
+        <td>99%</td>
+        <td>1.21%</td>
+      </tr>
+      <tr>
+        <td>Houston</td>
+        <td>3.50%</td>
+        <td>11.50%</td>
+        <td>9.60%</td>
+        <td>1.30%</td>
+        <td>67%</td>
+        <td>100%</td>
+        <td>100%</td>
+        <td>100%</td>
+        <td>100%</td>
+        <td>0.55%</td>
+      </tr>
+      <tr>
+        <td>Jacksonville</td>
+        <td>1.30%</td>
+        <td>4.40%</td>
+        <td>6.30%</td>
+        <td>0.20%</td>
+        <td>21%</td>
+        <td>30%</td>
+        <td>53%</td>
+        <td>68%</td>
+        <td>100%</td>
+        <td>0.28%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>4.20%</td>
+        <td>13.70%</td>
+        <td>11.10%</td>
+        <td>1.70%</td>
+        <td>85%</td>
+        <td>100%</td>
+        <td>100%</td>
+        <td>100%</td>
+        <td>100%</td>
+        <td>2.75%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>2.40%</td>
+        <td>7.90%</td>
+        <td>10.40%</td>
+        <td>0.60%</td>
+        <td>35%</td>
+        <td>69%</td>
+        <td>100%</td>
+        <td>100%</td>
+        <td>100%</td>
+        <td>0.73%</td>
+      </tr>
+      <tr>
+        <td>New York</td>
+        <td>0.30%</td>
+        <td>0.90%</td>
+        <td>2.10%</td>
+        <td>0.00%</td>
+        <td>1%</td>
+        <td>15%</td>
+        <td>15%</td>
+        <td>15%</td>
+        <td>18%</td>
+        <td>0.15%</td>
+      </tr>
+      <tr>
+        <td>Tampa</td>
+        <td>2.30%</td>
+        <td>7.30%</td>
+        <td>8.50%</td>
+        <td>0.60%</td>
+        <td>35%</td>
+        <td>71%</td>
+        <td>100%</td>
+        <td>100%</td>
+        <td>100%</td>
+        <td>0.84%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>6.30%</td>
+        <td>20.50%</td>
+        <td>15.20%</td>
+        <td>3.00%</td>
+        <td>100%</td>
+        <td>100%</td>
+        <td>100%</td>
+        <td>100%</td>
+        <td>100%</td>
+        <td>4.11%</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Payout structure</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>WindSpeed_mph</th>
+        <th>Payout</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>94</td>
+        <td>5%</td>
+      </tr>
+      <tr>
+        <td>100</td>
+        <td>10%</td>
+      </tr>
+      <tr>
+        <td>105</td>
+        <td>15%</td>
+      </tr>
+      <tr>
+        <td>111</td>
+        <td>20%</td>
+      </tr>
+      <tr>
+        <td>115</td>
+        <td>25%</td>
+      </tr>
+      <tr>
+        <td>120</td>
+        <td>30%</td>
+      </tr>
+      <tr>
+        <td>125</td>
+        <td>40%</td>
+      </tr>
+      <tr>
+        <td>130</td>
+        <td>45%</td>
+      </tr>
+      <tr>
+        <td>135</td>
+        <td>50%</td>
+      </tr>
+      <tr>
+        <td>140</td>
+        <td>60%</td>
+      </tr>
+      <tr>
+        <td>145</td>
+        <td>65%</td>
+      </tr>
+      <tr>
+        <td>150</td>
+        <td>70%</td>
+      </tr>
+      <tr>
+        <td>155</td>
+        <td>80%</td>
+      </tr>
+      <tr>
+        <td>160</td>
+        <td>90%</td>
+      </tr>
+      <tr>
+        <td>165</td>
+        <td>100%</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Historical events</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>year</th>
+        <th>agg_limit</th>
+        <th>GU_year</th>
+        <th>GR_year</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1992</td>
+        <td>100%</td>
+        <td>313%</td>
+        <td>100%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1992</td>
+        <td>100%</td>
+        <td>296%</td>
+        <td>100%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1945</td>
+        <td>100%</td>
+        <td>112%</td>
+        <td>100%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1950</td>
+        <td>100%</td>
+        <td>108%</td>
+        <td>100%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1945</td>
+        <td>100%</td>
+        <td>102%</td>
+        <td>100%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1947</td>
+        <td>100%</td>
+        <td>98%</td>
+        <td>98%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>2005</td>
+        <td>100%</td>
+        <td>67%</td>
+        <td>67%</td>
+      </tr>
+      <tr>
+        <td>Charleston</td>
+        <td>1959</td>
+        <td>100%</td>
+        <td>67%</td>
+        <td>67%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1950</td>
+        <td>100%</td>
+        <td>42%</td>
+        <td>42%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1949</td>
+        <td>100%</td>
+        <td>41%</td>
+        <td>41%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>2005</td>
+        <td>100%</td>
+        <td>39%</td>
+        <td>39%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1964</td>
+        <td>100%</td>
+        <td>34%</td>
+        <td>34%</td>
+      </tr>
+      <tr>
+        <td>Houston</td>
+        <td>1983</td>
+        <td>100%</td>
+        <td>33%</td>
+        <td>33%</td>
+      </tr>
+      <tr>
+        <td>Houston</td>
+        <td>1854</td>
+        <td>100%</td>
+        <td>32%</td>
+        <td>32%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1947</td>
+        <td>100%</td>
+        <td>30%</td>
+        <td>30%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1865</td>
+        <td>100%</td>
+        <td>26%</td>
+        <td>26%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1865</td>
+        <td>100%</td>
+        <td>25%</td>
+        <td>25%</td>
+      </tr>
+      <tr>
+        <td>Tampa</td>
+        <td>2024</td>
+        <td>100%</td>
+        <td>25%</td>
+        <td>25%</td>
+      </tr>
+      <tr>
+        <td>Charleston</td>
+        <td>1989</td>
+        <td>100%</td>
+        <td>22%</td>
+        <td>22%</td>
+      </tr>
+      <tr>
+        <td>Jacksonville</td>
+        <td>1964</td>
+        <td>100%</td>
+        <td>21%</td>
+        <td>21%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1964</td>
+        <td>100%</td>
+        <td>20%</td>
+        <td>20%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1948</td>
+        <td>100%</td>
+        <td>20%</td>
+        <td>20%</td>
+      </tr>
+      <tr>
+        <td>Jacksonville</td>
+        <td>1854</td>
+        <td>100%</td>
+        <td>19%</td>
+        <td>19%</td>
+      </tr>
+      <tr>
+        <td>Tampa</td>
+        <td>1878</td>
+        <td>100%</td>
+        <td>19%</td>
+        <td>19%</td>
+      </tr>
+      <tr>
+        <td>Tampa</td>
+        <td>1950</td>
+        <td>100%</td>
+        <td>19%</td>
+        <td>19%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>1855</td>
+        <td>100%</td>
+        <td>12%</td>
+        <td>12%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>1856</td>
+        <td>100%</td>
+        <td>12%</td>
+        <td>12%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>1860</td>
+        <td>100%</td>
+        <td>12%</td>
+        <td>12%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>1947</td>
+        <td>100%</td>
+        <td>12%</td>
+        <td>12%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>1965</td>
+        <td>100%</td>
+        <td>12%</td>
+        <td>12%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>1969</td>
+        <td>100%</td>
+        <td>12%</td>
+        <td>12%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>2005</td>
+        <td>100%</td>
+        <td>12%</td>
+        <td>12%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>2021</td>
+        <td>100%</td>
+        <td>12%</td>
+        <td>12%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1949</td>
+        <td>100%</td>
+        <td>11%</td>
+        <td>11%</td>
+      </tr>
+      <tr>
+        <td>Jacksonville</td>
+        <td>1853</td>
+        <td>100%</td>
+        <td>11%</td>
+        <td>11%</td>
+      </tr>
+      <tr>
+        <td>New York</td>
+        <td>2012</td>
+        <td>100%</td>
+        <td>11%</td>
+        <td>11%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1948</td>
+        <td>100%</td>
+        <td>10%</td>
+        <td>10%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1871</td>
+        <td>100%</td>
+        <td>10%</td>
+        <td>10%</td>
+      </tr>
+      <tr>
+        <td>Houston</td>
+        <td>1949</td>
+        <td>100%</td>
+        <td>9%</td>
+        <td>9%</td>
+      </tr>
+      <tr>
+        <td>Houston</td>
+        <td>2008</td>
+        <td>100%</td>
+        <td>8%</td>
+        <td>8%</td>
+      </tr>
+      <tr>
+        <td>Tampa</td>
+        <td>1968</td>
+        <td>100%</td>
+        <td>8%</td>
+        <td>8%</td>
+      </tr>
+      <tr>
+        <td>Tampa</td>
+        <td>2022</td>
+        <td>100%</td>
+        <td>8%</td>
+        <td>8%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>2020</td>
+        <td>100%</td>
+        <td>7%</td>
+        <td>7%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1965</td>
+        <td>100%</td>
+        <td>5%</td>
+        <td>5%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1965</td>
+        <td>100%</td>
+        <td>5%</td>
+        <td>5%</td>
+      </tr>
+      <tr>
+        <td>Tampa</td>
+        <td>1966</td>
+        <td>100%</td>
+        <td>3%</td>
+        <td>3%</td>
+      </tr>
+      <tr>
+        <td>Charleston</td>
+        <td>1958</td>
+        <td>100%</td>
+        <td>2%</td>
+        <td>2%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>2004</td>
+        <td>100%</td>
+        <td>2%</td>
+        <td>2%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1876</td>
+        <td>100%</td>
+        <td>1%</td>
+        <td>1%</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+<section id="content-Charleston" class="tab-content">
+  <h2>Charleston</h2>
+  <h3>Pricing summary</h3>
+  <div class="metric-grid">
+    <div class="metric">
+      <div class="metric-label">EL</div>
+      <div class="metric-value">1.50%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ROL</div>
+      <div class="metric-value">4.80%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ap</div>
+      <div class="metric-value">8.10%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ep</div>
+      <div class="metric-value">0.20%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP50_GR</div>
+      <div class="metric-value">16%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP100_GR</div>
+      <div class="metric-value">29%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP200_GR</div>
+      <div class="metric-value">51%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP250_GR</div>
+      <div class="metric-value">61%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP500_GR</div>
+      <div class="metric-value">99%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Hist burn (since 1950)</div>
+      <div class="metric-value">1.21%</div>
+    </div>
+  </div>
+  <h3>Historical events</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>year</th>
+        <th>agg_limit</th>
+        <th>GU_year</th>
+        <th>GR_year</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Charleston</td>
+        <td>1959</td>
+        <td>100%</td>
+        <td>67%</td>
+        <td>67%</td>
+      </tr>
+      <tr>
+        <td>Charleston</td>
+        <td>1989</td>
+        <td>100%</td>
+        <td>22%</td>
+        <td>22%</td>
+      </tr>
+      <tr>
+        <td>Charleston</td>
+        <td>1958</td>
+        <td>100%</td>
+        <td>2%</td>
+        <td>2%</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Historical event maps</h3>
+  <details>
+    <summary>Gracie (1959)</summary>
+    <div class="map-frame lazy-map event-frame" data-src="Individual%20Files/wind_in_hex_Charleston_historical_map_Gracie_1959_S1.html"></div>
+  </details>
+  <details>
+    <summary>Helene (1958)</summary>
+    <div class="map-frame lazy-map event-frame" data-src="Individual%20Files/wind_in_hex_Charleston_historical_map_Helene_1958_S1.html"></div>
+  </details>
+</section>
+<section id="content-Houston" class="tab-content">
+  <h2>Houston</h2>
+  <h3>Pricing summary</h3>
+  <div class="metric-grid">
+    <div class="metric">
+      <div class="metric-label">EL</div>
+      <div class="metric-value">3.50%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ROL</div>
+      <div class="metric-value">11.50%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ap</div>
+      <div class="metric-value">9.60%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ep</div>
+      <div class="metric-value">1.30%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP50_GR</div>
+      <div class="metric-value">67%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP100_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP200_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP250_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP500_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Hist burn (since 1950)</div>
+      <div class="metric-value">0.55%</div>
+    </div>
+  </div>
+  <h3>Historical events</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>year</th>
+        <th>agg_limit</th>
+        <th>GU_year</th>
+        <th>GR_year</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Houston</td>
+        <td>1983</td>
+        <td>100%</td>
+        <td>33%</td>
+        <td>33%</td>
+      </tr>
+      <tr>
+        <td>Houston</td>
+        <td>1854</td>
+        <td>100%</td>
+        <td>32%</td>
+        <td>32%</td>
+      </tr>
+      <tr>
+        <td>Houston</td>
+        <td>1949</td>
+        <td>100%</td>
+        <td>9%</td>
+        <td>9%</td>
+      </tr>
+      <tr>
+        <td>Houston</td>
+        <td>2008</td>
+        <td>100%</td>
+        <td>8%</td>
+        <td>8%</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Historical event maps</h3>
+  <details>
+    <summary>Alicia (1983)</summary>
+    <div class="map-frame lazy-map event-frame" data-src="Individual%20Files/wind_in_hex_Houston_historical_map_Alicia_1983_S1.html"></div>
+  </details>
+</section>
+<section id="content-Jacksonville" class="tab-content">
+  <h2>Jacksonville</h2>
+  <h3>Pricing summary</h3>
+  <div class="metric-grid">
+    <div class="metric">
+      <div class="metric-label">EL</div>
+      <div class="metric-value">1.30%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ROL</div>
+      <div class="metric-value">4.40%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ap</div>
+      <div class="metric-value">6.30%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ep</div>
+      <div class="metric-value">0.20%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP50_GR</div>
+      <div class="metric-value">21%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP100_GR</div>
+      <div class="metric-value">30%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP200_GR</div>
+      <div class="metric-value">53%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP250_GR</div>
+      <div class="metric-value">68%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP500_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Hist burn (since 1950)</div>
+      <div class="metric-value">0.28%</div>
+    </div>
+  </div>
+  <h3>Historical events</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>year</th>
+        <th>agg_limit</th>
+        <th>GU_year</th>
+        <th>GR_year</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Jacksonville</td>
+        <td>1964</td>
+        <td>100%</td>
+        <td>21%</td>
+        <td>21%</td>
+      </tr>
+      <tr>
+        <td>Jacksonville</td>
+        <td>1854</td>
+        <td>100%</td>
+        <td>19%</td>
+        <td>19%</td>
+      </tr>
+      <tr>
+        <td>Jacksonville</td>
+        <td>1853</td>
+        <td>100%</td>
+        <td>11%</td>
+        <td>11%</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Historical event maps</h3>
+  <details>
+    <summary>Dora (1964)</summary>
+    <div class="map-frame lazy-map event-frame" data-src="Individual%20Files/wind_in_hex_Jacksonville_historical_map_Dora_1964_S1.html"></div>
+  </details>
+</section>
+<section id="content-Miami" class="tab-content">
+  <h2>Miami</h2>
+  <h3>Pricing summary</h3>
+  <div class="metric-grid">
+    <div class="metric">
+      <div class="metric-label">EL</div>
+      <div class="metric-value">4.20%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ROL</div>
+      <div class="metric-value">13.70%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ap</div>
+      <div class="metric-value">11.10%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ep</div>
+      <div class="metric-value">1.70%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP50_GR</div>
+      <div class="metric-value">85%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP100_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP200_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP250_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP500_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Hist burn (since 1950)</div>
+      <div class="metric-value">2.75%</div>
+    </div>
+  </div>
+  <h3>Historical events</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>year</th>
+        <th>agg_limit</th>
+        <th>GU_year</th>
+        <th>GR_year</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Miami</td>
+        <td>1992</td>
+        <td>100%</td>
+        <td>296%</td>
+        <td>100%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1945</td>
+        <td>100%</td>
+        <td>102%</td>
+        <td>100%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1950</td>
+        <td>100%</td>
+        <td>42%</td>
+        <td>42%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>2005</td>
+        <td>100%</td>
+        <td>39%</td>
+        <td>39%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1947</td>
+        <td>100%</td>
+        <td>30%</td>
+        <td>30%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1865</td>
+        <td>100%</td>
+        <td>25%</td>
+        <td>25%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1964</td>
+        <td>100%</td>
+        <td>20%</td>
+        <td>20%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1949</td>
+        <td>100%</td>
+        <td>11%</td>
+        <td>11%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1948</td>
+        <td>100%</td>
+        <td>10%</td>
+        <td>10%</td>
+      </tr>
+      <tr>
+        <td>Miami</td>
+        <td>1965</td>
+        <td>100%</td>
+        <td>5%</td>
+        <td>5%</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Historical event maps</h3>
+  <details>
+    <summary>Andrew (1992)</summary>
+    <div class="map-frame lazy-map event-frame" data-src="Individual%20Files/wind_in_hex_Miami_historical_map_Andrew_1992_S1.html"></div>
+  </details>
+  <details>
+    <summary>Wilma (2005)</summary>
+    <div class="map-frame lazy-map event-frame" data-src="Individual%20Files/wind_in_hex_Miami_historical_map_Wilma_2005_S1.html"></div>
+  </details>
+</section>
+<section id="content-New_Orleans" class="tab-content">
+  <h2>New Orleans</h2>
+  <h3>Pricing summary</h3>
+  <div class="metric-grid">
+    <div class="metric">
+      <div class="metric-label">EL</div>
+      <div class="metric-value">2.40%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ROL</div>
+      <div class="metric-value">7.90%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ap</div>
+      <div class="metric-value">10.40%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ep</div>
+      <div class="metric-value">0.60%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP50_GR</div>
+      <div class="metric-value">35%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP100_GR</div>
+      <div class="metric-value">69%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP200_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP250_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP500_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Hist burn (since 1950)</div>
+      <div class="metric-value">0.73%</div>
+    </div>
+  </div>
+  <h3>Historical events</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>year</th>
+        <th>agg_limit</th>
+        <th>GU_year</th>
+        <th>GR_year</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>New Orleans</td>
+        <td>1855</td>
+        <td>100%</td>
+        <td>12%</td>
+        <td>12%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>1856</td>
+        <td>100%</td>
+        <td>12%</td>
+        <td>12%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>1860</td>
+        <td>100%</td>
+        <td>12%</td>
+        <td>12%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>1947</td>
+        <td>100%</td>
+        <td>12%</td>
+        <td>12%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>1965</td>
+        <td>100%</td>
+        <td>12%</td>
+        <td>12%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>1969</td>
+        <td>100%</td>
+        <td>12%</td>
+        <td>12%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>2005</td>
+        <td>100%</td>
+        <td>12%</td>
+        <td>12%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>2021</td>
+        <td>100%</td>
+        <td>12%</td>
+        <td>12%</td>
+      </tr>
+      <tr>
+        <td>New Orleans</td>
+        <td>2020</td>
+        <td>100%</td>
+        <td>7%</td>
+        <td>7%</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Historical event maps</h3>
+  <details>
+    <summary>Ida (2021)</summary>
+    <div class="map-frame lazy-map event-frame" data-src="Individual%20Files/wind_in_hex_New_Orleans_historical_map_Ida_2021_S1.html"></div>
+  </details>
+  <details>
+    <summary>Katrina (2005)</summary>
+    <div class="map-frame lazy-map event-frame" data-src="Individual%20Files/wind_in_hex_New_Orleans_historical_map_Katrina_2005_S1.html"></div>
+  </details>
+  <details>
+    <summary>Unnamed (1855)</summary>
+    <div class="map-frame lazy-map event-frame" data-src="Individual%20Files/wind_in_hex_New_Orleans_historical_map_Unnamed_1855_S1.html"></div>
+  </details>
+</section>
+<section id="content-New_York" class="tab-content">
+  <h2>New York</h2>
+  <h3>Pricing summary</h3>
+  <div class="metric-grid">
+    <div class="metric">
+      <div class="metric-label">EL</div>
+      <div class="metric-value">0.30%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ROL</div>
+      <div class="metric-value">0.90%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ap</div>
+      <div class="metric-value">2.10%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ep</div>
+      <div class="metric-value">0.00%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP50_GR</div>
+      <div class="metric-value">1%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP100_GR</div>
+      <div class="metric-value">15%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP200_GR</div>
+      <div class="metric-value">15%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP250_GR</div>
+      <div class="metric-value">15%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP500_GR</div>
+      <div class="metric-value">18%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Hist burn (since 1950)</div>
+      <div class="metric-value">0.15%</div>
+    </div>
+  </div>
+  <h3>Historical events</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>year</th>
+        <th>agg_limit</th>
+        <th>GU_year</th>
+        <th>GR_year</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>New York</td>
+        <td>2012</td>
+        <td>100%</td>
+        <td>11%</td>
+        <td>11%</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Historical event maps</h3>
+  <details>
+    <summary>Sandy (2012)</summary>
+    <div class="map-frame lazy-map event-frame" data-src="Individual%20Files/wind_in_hex_New_York_historical_map_Sandy_2012_S1.html"></div>
+  </details>
+</section>
+<section id="content-Tampa" class="tab-content">
+  <h2>Tampa</h2>
+  <h3>Pricing summary</h3>
+  <div class="metric-grid">
+    <div class="metric">
+      <div class="metric-label">EL</div>
+      <div class="metric-value">2.30%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ROL</div>
+      <div class="metric-value">7.30%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ap</div>
+      <div class="metric-value">8.50%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ep</div>
+      <div class="metric-value">0.60%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP50_GR</div>
+      <div class="metric-value">35%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP100_GR</div>
+      <div class="metric-value">71%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP200_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP250_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP500_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Hist burn (since 1950)</div>
+      <div class="metric-value">0.84%</div>
+    </div>
+  </div>
+  <h3>Historical events</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>year</th>
+        <th>agg_limit</th>
+        <th>GU_year</th>
+        <th>GR_year</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Tampa</td>
+        <td>2024</td>
+        <td>100%</td>
+        <td>25%</td>
+        <td>25%</td>
+      </tr>
+      <tr>
+        <td>Tampa</td>
+        <td>1878</td>
+        <td>100%</td>
+        <td>19%</td>
+        <td>19%</td>
+      </tr>
+      <tr>
+        <td>Tampa</td>
+        <td>1950</td>
+        <td>100%</td>
+        <td>19%</td>
+        <td>19%</td>
+      </tr>
+      <tr>
+        <td>Tampa</td>
+        <td>1968</td>
+        <td>100%</td>
+        <td>8%</td>
+        <td>8%</td>
+      </tr>
+      <tr>
+        <td>Tampa</td>
+        <td>2022</td>
+        <td>100%</td>
+        <td>8%</td>
+        <td>8%</td>
+      </tr>
+      <tr>
+        <td>Tampa</td>
+        <td>1966</td>
+        <td>100%</td>
+        <td>3%</td>
+        <td>3%</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Historical event maps</h3>
+  <details>
+    <summary>Ian (2022)</summary>
+    <div class="map-frame lazy-map event-frame" data-src="Individual%20Files/wind_in_hex_Tampa_historical_map_Ian_2022_S1.html"></div>
+  </details>
+  <details>
+    <summary>Milton (2024)</summary>
+    <div class="map-frame lazy-map event-frame" data-src="Individual%20Files/wind_in_hex_Tampa_historical_map_Milton_2024_S1.html"></div>
+  </details>
+</section>
+<section id="content-Tri_County_Area" class="tab-content">
+  <h2>Tri County Area</h2>
+  <h3>Pricing summary</h3>
+  <div class="metric-grid">
+    <div class="metric">
+      <div class="metric-label">EL</div>
+      <div class="metric-value">6.30%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ROL</div>
+      <div class="metric-value">20.50%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ap</div>
+      <div class="metric-value">15.20%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ep</div>
+      <div class="metric-value">3.00%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP50_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP100_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP200_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP250_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">RP500_GR</div>
+      <div class="metric-value">100%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Hist burn (since 1950)</div>
+      <div class="metric-value">4.11%</div>
+    </div>
+  </div>
+  <h3>Historical events</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>year</th>
+        <th>agg_limit</th>
+        <th>GU_year</th>
+        <th>GR_year</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1992</td>
+        <td>100%</td>
+        <td>313%</td>
+        <td>100%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1945</td>
+        <td>100%</td>
+        <td>112%</td>
+        <td>100%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1950</td>
+        <td>100%</td>
+        <td>108%</td>
+        <td>100%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1947</td>
+        <td>100%</td>
+        <td>98%</td>
+        <td>98%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>2005</td>
+        <td>100%</td>
+        <td>67%</td>
+        <td>67%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1949</td>
+        <td>100%</td>
+        <td>41%</td>
+        <td>41%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1964</td>
+        <td>100%</td>
+        <td>34%</td>
+        <td>34%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1865</td>
+        <td>100%</td>
+        <td>26%</td>
+        <td>26%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1948</td>
+        <td>100%</td>
+        <td>20%</td>
+        <td>20%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1871</td>
+        <td>100%</td>
+        <td>10%</td>
+        <td>10%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1965</td>
+        <td>100%</td>
+        <td>5%</td>
+        <td>5%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>2004</td>
+        <td>100%</td>
+        <td>2%</td>
+        <td>2%</td>
+      </tr>
+      <tr>
+        <td>Tri County Area</td>
+        <td>1876</td>
+        <td>100%</td>
+        <td>1%</td>
+        <td>1%</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3>Historical event maps</h3>
+  <details>
+    <summary>Andrew (1992)</summary>
+    <div class="map-frame lazy-map event-frame" data-src="Individual%20Files/wind_in_hex_Tri_County_Area_historical_map_Andrew_1992_S1.html"></div>
+  </details>
+  <details>
+    <summary>Wilma (2005)</summary>
+    <div class="map-frame lazy-map event-frame" data-src="Individual%20Files/wind_in_hex_Tri_County_Area_historical_map_Wilma_2005_S1.html"></div>
+  </details>
+</section>
+</body>
+</html>
